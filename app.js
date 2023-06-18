@@ -69,7 +69,6 @@ app.post("/login-user", async (req, res) => {
 
 //name
 app.post("/name", async (req, res) => {
-  try{
   const {email} = req.body;
   const user = await User.findOne({ email });
   //console.log(user);
@@ -81,27 +80,56 @@ app.post("/name", async (req, res) => {
   }else{
   return res.json({ error: "error" });
   }
-}catch(e){
-  console.log(e);
-}
   
 });
 
 
 
 
-//cart
-app.post('/addToCart',async (req,res)=>{
-  const user = await User.findOne({email:req.body.email})
-  user.cart = [];
-  for(var i=0;i<req.body.data.length;i++)
-{
-  user.cart.push(req.body.data[i]);
-}  
-user.save()
-//console.log(user);
-  res.json({status:"ok"})
-})
+//cart adding
+app.post('/addToCart', async (req, res) => {
+  const user = await User.findOne({ email: req.body.email });
+  const existingCartItems = user.cart || [];
+
+  const newData = [...req.body.data, ...req.body.data1];
+  const uniqueData = newData.filter((item) => {
+    if (item.key === 'TotalAmount') {
+      return false; 
+    } else {
+      const existingItem = existingCartItems.find((existingItem) => existingItem.key === item.key);
+      return !existingItem; 
+    }
+  });
+
+  user.cart = [...existingCartItems, ...uniqueData];
+  await user.save();
+
+  console.log(user);
+  res.json({ status: "ok" });
+});
+
+
+
+//card retriveing
+
+app.post("/cartretrive", async (req, res) => {
+  const {email} = req.body;
+  const user = await User.findOne({ email });
+  // const uname=user.fname;
+  // const pname=user.lname; 
+  // const userName=uname+" "+pname;
+  const cartval=user.cart;
+  // console.log(cartval);
+  if(cartval.length!=0){
+  return res.json({status:"ok",data:cartval})
+  }else{
+  return res.json({ error: "error" });
+  }
+  
+});
+
+
+
 
 //payment
 
