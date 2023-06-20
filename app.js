@@ -88,25 +88,18 @@ app.post("/name", async (req, res) => {
 
 //cart adding
 app.post('/addToCart', async (req, res) => {
-  const user = await User.findOne({ email: req.body.email });
-  const existingCartItems = user.cart || [];
+  const { email, storage } = req.body;
+  const user = await User.findOne({ email });
 
-  const newData = [...req.body.data, ...req.body.data1];
-  const uniqueData = newData.filter((item) => {
-    if (item.key === 'TotalAmount') {
-      return false; 
-    } else {
-      const existingItem = existingCartItems.find((existingItem) => existingItem.key === item.key);
-      return !existingItem; 
-    }
-  });
+  if (user.cart.includes(storage)) {
+    return res.json({ status: 'already added' });
+  }
 
-  user.cart = [...existingCartItems, ...uniqueData];
-  await user.save();
-
-  console.log(user);
-  res.json({ status: "ok" });
+  user.cart.push(storage);
+  user.save();
+  res.json({ status: 'ok' });
 });
+
 
 
 
@@ -115,19 +108,33 @@ app.post('/addToCart', async (req, res) => {
 app.post("/cartretrive", async (req, res) => {
   const {email} = req.body;
   const user = await User.findOne({ email });
-  // const uname=user.fname;
-  // const pname=user.lname; 
-  // const userName=uname+" "+pname;
+  
   const cartval=user.cart;
+  
+  const cartimg=user.cartimg;
+
   // console.log(cartval);
   if(cartval.length!=0){
-  return res.json({status:"ok",data:cartval})
+  return res.json({status:"ok",data:cartval,data1:cartimg})
   }else{
   return res.json({ error: "error" });
   }
   
 });
 
+//cart image
+app.post('/cartimg', async (req, res) => {
+  const { email, imageLink } = req.body;
+  const user = await User.findOne({ email });
+
+  if (user.cartimg.includes(imageLink)) {
+    return res.json({ status: 'already added' });
+  }
+
+  user.cartimg.push(imageLink);
+  user.save();
+  res.json({ status: 'ok' });
+});
 
 
 
